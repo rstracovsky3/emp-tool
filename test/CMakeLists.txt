@@ -31,6 +31,7 @@ add_test_case(gen_circuit)
 add_test_case(mitccrh)
 add_test_case(f2k)
 add_test_case(halfgate)
+add_test_case(one_hot_garbled_gate)
 add_test_case(to_bool)
 add_test_case(aes_opt)
 

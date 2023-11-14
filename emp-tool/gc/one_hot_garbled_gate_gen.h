@@ -107,7 +107,7 @@ public:
 	block public_label(bool b) override {
 		return constant[b];
 	}
-	block one_hot_garble_gate(std::size_t n, const block *A) override {
+	block one_hot_garbled_gate(std::size_t n, const block *A) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
         block res = one_hot_garble(n, A, constant[0], delta, table, &mitccrh);
