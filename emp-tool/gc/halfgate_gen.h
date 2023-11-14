@@ -75,6 +75,9 @@ public:
 	block not_gate(const block&a) override {
 		return xor_gate(a, public_label(true));
 	}
+	block one_hot_garble_gate(std::size_t n, const block *A) override {
+		error("Operation not supported by halfgates.");
+	}
 	uint64_t num_and() override {
 		return mitccrh.gid/2;
 	}

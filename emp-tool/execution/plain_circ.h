@@ -96,6 +96,10 @@ public:
 			return res;
 		}
 	}
+	block one_hot_garble_gate(std::size_t n, const block *A) override {
+		// TODO
+		return public_zero;
+	}
 	block private_label(bool b) {
 		block res = zero_block;
 		uint64_t *arr = (uint64_t*) &res;

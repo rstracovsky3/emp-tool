@@ -13,7 +13,7 @@ namespace emp {
  */
 
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
-inline void one_hot_garble(std::size_t n, const block *A, block delta, block *table, MITCCRH<8> *mitccrh) {
+inline block one_hot_garble(std::size_t n, const block *A, block zero, block delta, block *table, MITCCRH<8> *mitccrh) {
     bool pa;
     std::vector<block> seed_buffer(1 << n);
 
@@ -33,10 +33,11 @@ inline void one_hot_garble(std::size_t n, const block *A, block delta, block *ta
     block prg_buffer[2];
     block mitccrh_buffer[2];
 
-    block even;
-    block odd;
+    block even = zero;
+    block odd = zero;
     block even_key;
     block odd_key;
+    block leaf;
 
     // seed population
     for (std::size_t i = 1; i < n; i++) {
@@ -55,12 +56,12 @@ inline void one_hot_garble(std::size_t n, const block *A, block delta, block *ta
 
         // encryption keys
         if (pa == 0) {
-            mitccrh_buffer[0] = x[i] ^ delta;
-            mitccrh_buffer[1] = x[i];
+            mitccrh_buffer[0] = A[i] ^ delta;
+            mitccrh_buffer[1] = A[i];
         }
         else {
-            mitccrh_buffer[0] = x[i];
-            mitccrh_buffer[1] = x[i] ^ delta;
+            mitccrh_buffer[0] = A[i];
+            mitccrh_buffer[1] = A[i] ^ delta;
         }
         mitccrh->hash<2,1>(mitccrh_buffer);
         even_key = mitccrh_buffer[0];
@@ -70,7 +71,7 @@ inline void one_hot_garble(std::size_t n, const block *A, block delta, block *ta
         table[2*(i - 1) + 1] = odd ^ odd_key;
 
         if (i == n - 1) {
-            block leaf = seed_buffer[0];
+            leaf = seed_buffer[0];
             for (std::size_t j = 1; j < (1 << n); j++) {
                 leaf ^= seed_buffer[i];
             }
@@ -109,7 +110,7 @@ public:
 	block one_hot_garble_gate(std::size_t n, const block *A) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
-        block res = one_hot_garble(A, delta, table, MITCCRH<8> *mitccrh);
+        block res = one_hot_garble(n, A, constant[0], delta, table, &mitccrh);
 		io->send_block(table, table_size);
 		return res;
 	}
