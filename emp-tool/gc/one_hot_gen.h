@@ -15,7 +15,7 @@ namespace emp {
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
 inline void one_hot_garble(std::size_t n, const block *A, block delta, block *table, MITCCRH<8> *mitccrh) {
     bool pa;
-    std::vector<Share<mode>> seed_buffer(1 << n);
+    std::vector<block> seed_buffer(1 << n);
 
     PRG prg;
 
@@ -80,8 +80,42 @@ inline void one_hot_garble(std::size_t n, const block *A, block delta, block *ta
         table[2*(n - 1)] = leaf;
     }
 
-
-
+    return leaf; // change, why is it returning stuff here?
 }
 
+template<typename T>
+class OneHotGen:public CircuitExecution {
+public:
+	block delta;
+	T * io;
+	block constant[2];
+	MITCCRH<8> mitccrh;
+	OneHotGen(T * io) :io(io) {
+		block tmp[2];
+		PRG().random_block(tmp, 2);
+		set_delta(tmp[0]);
+		io->send_block(tmp+1, 1);
+		mitccrh.setS(tmp[1]);
+	}
+	void set_delta(const block & _delta) {
+		delta = set_bit(_delta, 0);
+		PRG().random_block(constant, 2);
+		io->send_block(constant, 2);
+		constant[1] = constant[1] ^ delta;
+	}
+	block public_label(bool b) override {
+		return constant[b];
+	}
+	block one_hot_garble_gate(std::size_t n, const block *A) override {
+        std::size_t table_size = 2*(n - 1) + 1;
+		block *table = new block[table_size];
+        block res = one_hot_garble(A, delta, table, MITCCRH<8> *mitccrh);
+		io->send_block(table, table_size);
+		return res;
+	}
+	uint64_t num_and() override {
+		return mitccrh.gid/2;
+	}
+};
 }
+#endif// EMP_ONE_HOT_GEN_H__
