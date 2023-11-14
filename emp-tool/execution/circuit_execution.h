@@ -18,7 +18,7 @@ class CircuitExecution { public:
 	virtual block and_gate(const block& in1, const block& in2) = 0;
 	virtual block xor_gate(const block&in1, const block& in2) = 0;
 	virtual block not_gate(const block& in1) = 0;
-	virtual block one_hot_garbled_gate(std::size_t n, const block *in1) = 0;
+	virtual block one_hot_garbled_gate(std::size_t n, const block *in1, size_t in1_plain) = 0;
 	virtual block public_label(bool b) = 0;
 	virtual uint64_t num_and() {
 		return -1;

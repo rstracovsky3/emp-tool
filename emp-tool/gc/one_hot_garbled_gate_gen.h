@@ -1,5 +1,5 @@
-#ifndef EMP_ONE_HOT_GEN_H__
-#define EMP_ONE_HOT_GEN_H__
+#ifndef EMP_ONE_HOT_GARBLED_GATE_GEN_H__
+#define EMP_ONE_HOT_GARBLED_GATE_GEN_H__
 #include "emp-tool/utils/utils.h"
 #include "emp-tool/utils/mitccrh.h"
 #include "emp-tool/execution/circuit_execution.h"
@@ -33,8 +33,8 @@ inline block one_hot_garble(std::size_t n, const block *A, block zero, block del
     block prg_buffer[2];
     block mitccrh_buffer[2];
 
-    block even = zero;
-    block odd = zero;
+    block even = zero; // I don't like this change sometime?
+    block odd = zero; // I don't like this change sometime?
     block even_key;
     block odd_key;
     block leaf;
@@ -85,13 +85,13 @@ inline block one_hot_garble(std::size_t n, const block *A, block zero, block del
 }
 
 template<typename T>
-class OneHotGen:public CircuitExecution {
+class OneHotGarbledGateGen:public CircuitExecution {
 public:
 	block delta;
 	T * io;
 	block constant[2];
 	MITCCRH<8> mitccrh;
-	OneHotGen(T * io) :io(io) {
+	OneHotGarbledGateGen(T * io) :io(io) {
 		block tmp[2];
 		PRG().random_block(tmp, 2);
 		set_delta(tmp[0]);
@@ -107,7 +107,16 @@ public:
 	block public_label(bool b) override {
 		return constant[b];
 	}
-	block one_hot_garbled_gate(std::size_t n, const block *A) override {
+    block and_gate(const block& a, const block& b) override {
+		error("Operation not supported by one hot garbled gates.");
+	}
+	block xor_gate(const block&a, const block& b) override {
+		error("Operation not supported by one hot garbled gates.");
+	}
+	block not_gate(const block&a) override {
+		error("Operation not supported by one hot garbled gates.");
+	}
+	block one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
         block res = one_hot_garble(n, A, constant[0], delta, table, &mitccrh);
@@ -119,4 +128,4 @@ public:
 	}
 };
 }
-#endif// EMP_ONE_HOT_GEN_H__
+#endif// EMP_ONE_HOT_GARBLED_GATE_GEN_H__

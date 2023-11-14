@@ -33,6 +33,7 @@
 
 #include "emp-tool/gc/halfgate_eva.h"
 #include "emp-tool/gc/halfgate_gen.h"
+#include "emp-tool/gc/one_hot_garbled_gate_eva.h"
 #include "emp-tool/gc/one_hot_garbled_gate_gen.h"
 #include "emp-tool/gc/privacy_free_eva.h"
 #include "emp-tool/gc/privacy_free_gen.h"
