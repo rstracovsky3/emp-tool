@@ -33,7 +33,8 @@ int main(void) {
 		for(int jj = 0; jj < 2; ++jj) {
 			for(int i = 0; i < 8; ++i) {
 				prg.random_block(data, 2);
-				w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen);
+				// TODO CHANGE TO FULL GARBLING
+				w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen); // OUTPUTS LABEL for 0
 				w1 = w0 ^ delta;
 
 				if(ii == 1) data1[0] = data[0] ^ delta; else data1[0] = data[0];
