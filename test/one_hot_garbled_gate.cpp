@@ -3,18 +3,22 @@
 using namespace std;
 using namespace emp;
 
-void printt(block a) {
-	//uint64_t i0 = _mm_extract_epi64(a, 0);
-	//uint64_t i1 = _mm_extract_epi64(a, 1);
-	//printf("%X %X\n", i0, i1);
-	unsigned char *c = (unsigned char*)(&a);
-	for(int i = 0; i < 16; ++i) printf("%x ", c[i]);
-	printf("\n");
-}
+// void printt(block a) {
+// 	//uint64_t i0 = _mm_extract_epi64(a, 0);
+// 	//uint64_t i1 = _mm_extract_epi64(a, 1);
+// 	//printf("%X %X\n", i0, i1);
+// 	unsigned char *c = (unsigned char*)(&a);
+// 	for(int i = 0; i < 16; ++i) printf("%x ", c[i]);
+// 	printf("\n");
+// }
 
 int main(void) {
+
+	std::size_t max_n = 5;
+
 	// sender
-	block data[2], delta, table[2], w0, w1;
+	block data[max_n], delta, table[2*(max_n - 1) + 1], w0, w1;
+	block *w0p, *w1p;
 	MITCCRH<8> mi_gen;
 	PRG prg;
 	prg.random_block(&delta, 1);
@@ -29,21 +33,33 @@ int main(void) {
 
 
 	cout << "Correctness ... ";
-	for(int ii = 0; ii < 2; ++ii) {
-		for(int jj = 0; jj < 2; ++jj) {
-			for(int i = 0; i < 8; ++i) {
-				prg.random_block(data, 2);
-				// TODO CHANGE TO FULL GARBLING
-				w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen); // OUTPUTS LABEL for 0
-				w1 = w0 ^ delta;
+	for(int n = 0; n < max_n; ++n) {
+		for(int a = 0; a < (1 << n); ++a) {
+			for(int i = 0; i < 1; ++i) {
+				prg.random_block(data, n);
 
-				if(ii == 1) data1[0] = data[0] ^ delta; else data1[0] = data[0];
-				if(jj == 1) data1[1] = data[1] ^ delta; else data1[1] = data[1];
-				ret = halfgates_eval(data1[0], data1[1], table, &mi_eva);
+				//printf("n: %x, a: %x, i: %x\n", n, a, i);
+				// printt(data[1]);
+				
+				w0p = one_hot_garble(n, data, a, delta, table, &mi_gen);
+				w1p = one_hot_eval(n, data, a, table, &mi_gen);
 
-				block ret1 = w0;
-				if(ii == 1 && jj == 1) ret1 = w1;
-				if(cmpBlock(&ret, &ret1, 1) == false) {cout << "wrong" << endl; abort();}
+				//printf("W0P[0]: ");
+    			//printt(w0p[0]);
+
+				if(cmpBlock(w0p, w1p, (1 << n)) == false) {cout << "wrong" << endl; abort();}
+				
+
+				// w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen); // OUTPUTS LABEL for 0
+				// w1 = w0 ^ delta;
+
+				// if(ii == 1) data1[0] = data[0] ^ delta; else data1[0] = data[0];
+				// if(jj == 1) data1[1] = data[1] ^ delta; else data1[1] = data[1];
+				// ret = halfgates_eval(data1[0], data1[1], table, &mi_eva);
+
+				// block ret1 = w0;
+				// if(ii == 1 && jj == 1) ret1 = w1;
+				// if(cmpBlock(&ret, &ret1, 1) == false) {cout << "wrong" << endl; abort();}
 			}
 		}
 	}

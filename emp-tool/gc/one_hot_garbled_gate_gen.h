@@ -84,6 +84,8 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     seed_buffer[a] = seed_buffer[a] ^ delta;
 
     block* seeds = &seed_buffer[0];
+    //printf("SEED[0]: ");
+    //printt(seeds[0]);
     return seeds;
 
 }
