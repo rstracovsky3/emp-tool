@@ -6,7 +6,7 @@
 #include <iostream>
 namespace emp {
 
-inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, block zero, const block *table, MITCCRH<8> *mitccrh) {
+inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, const block *table, MITCCRH<8> *mitccrh) {
 	bool pa;
     std::vector<block> seed_buffer(1 << n);
 
@@ -25,8 +25,8 @@ inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, block ze
 
     block even;
     block odd;
-    block even_rec = zero; // I don't like
-    block odd_rec = zero; // I don't like this change sometime?
+    block even_rec = makeBlock(0, 0); // I don't like
+    block odd_rec = makeBlock(0, 0); // I don't like this change sometime?
     block key;
     block one;
 
@@ -111,7 +111,7 @@ public:
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
         io->recv_block(table, table_size);
-        block res = one_hot_garble(n, A, a, constant[0], table, &mitccrh);
+        block res = one_hot_garble(n, A, a, table, &mitccrh);
 		return res;
 	}
 	uint64_t num_and() override {

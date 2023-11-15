@@ -13,7 +13,7 @@ namespace emp {
  */
 
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
-inline block one_hot_garble(std::size_t n, const block *A, block zero, block delta, block *table, MITCCRH<8> *mitccrh) {
+inline block one_hot_garble(std::size_t n, const block *A, block delta, block *table, MITCCRH<8> *mitccrh) {
     bool pa;
     std::vector<block> seed_buffer(1 << n);
 
@@ -33,8 +33,8 @@ inline block one_hot_garble(std::size_t n, const block *A, block zero, block del
     block prg_buffer[2];
     block mitccrh_buffer[2];
 
-    block even = zero; // I don't like this change sometime?
-    block odd = zero; // I don't like this change sometime?
+    block even = makeBlock(0, 0); // I don't like this change sometime?
+    block odd = makeBlock(0, 0); // I don't like this change sometime?
     block even_key;
     block odd_key;
     block leaf;
@@ -119,7 +119,7 @@ public:
 	block one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
-        block res = one_hot_garble(n, A, constant[0], delta, table, &mitccrh);
+        block res = one_hot_garble(n, A, delta, table, &mitccrh);
 		io->send_block(table, table_size);
 		return res;
 	}
