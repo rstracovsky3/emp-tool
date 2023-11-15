@@ -6,8 +6,10 @@
 #include <iostream>
 namespace emp {
 
-inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, const block *table, MITCCRH<8> *mitccrh) {
+// return list of ciphertexts size 2^n
+inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const block *table, MITCCRH<8> *mitccrh) {
 	bool pa;
+
     std::vector<block> seed_buffer(1 << n);
 
     PRG prg;
@@ -28,7 +30,7 @@ inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, const bl
     block even_rec = makeBlock(0, 0); // I don't like
     block odd_rec = makeBlock(0, 0); // I don't like this change sometime?
     block key;
-    block one;
+    block leaf_a;
 
     // seed population
     for (std::size_t i = 1; i < n; i++) {
@@ -65,17 +67,19 @@ inline block one_hot_eval(std::size_t n, const block *A, std::size_t a, const bl
         }
 
         if (i == n - 1) {
-            one = table[2*(n - 1)];
+            leaf_a = table[2*(n - 1)];
             for (std::size_t j = 0; j < a; j++) {
-                one ^= seed_buffer[i];
+                leaf_a ^= seed_buffer[i];
             }
             for (std::size_t j = a + 1; j < (1 << n); j++) {
-                one ^= seed_buffer[i];
+                leaf_a ^= seed_buffer[i];
             }
+            seed_buffer[a] = leaf_a;
         }
     }
 
-    return one; // TODO fix
+    block* seeds = &seed_buffer[0];
+    return seeds;
 
 }
 
@@ -107,11 +111,11 @@ public:
 	block not_gate(const block&a) override {
 		error("Operation not supported by one hot garbled gates.");
 	}
-    block one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
+    block *one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
         io->recv_block(table, table_size);
-        block res = one_hot_garble(n, A, a, table, &mitccrh);
+        block *res = one_hot_garble(n, A, a, table, &mitccrh);
 		return res;
 	}
 	uint64_t num_and() override {

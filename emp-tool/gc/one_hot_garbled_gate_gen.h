@@ -13,7 +13,7 @@ namespace emp {
  */
 
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
-inline block one_hot_garble(std::size_t n, const block *A, block delta, block *table, MITCCRH<8> *mitccrh) {
+inline block *one_hot_garble(std::size_t n, const block *A, block delta, block *table, MITCCRH<8> *mitccrh) {
     bool pa;
     std::vector<block> seed_buffer(1 << n);
 
@@ -81,7 +81,9 @@ inline block one_hot_garble(std::size_t n, const block *A, block delta, block *t
         table[2*(n - 1)] = leaf;
     }
 
-    return leaf; // change, why is it returning stuff here?
+    block* seeds = &seed_buffer[0];
+    return seeds;
+    
 }
 
 template<typename T>
@@ -116,10 +118,10 @@ public:
 	block not_gate(const block&a) override {
 		error("Operation not supported by one hot garbled gates.");
 	}
-	block one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
+	block *one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
         std::size_t table_size = 2*(n - 1) + 1;
 		block *table = new block[table_size];
-        block res = one_hot_garble(n, A, delta, table, &mitccrh);
+        block *res = one_hot_garble(n, A, delta, table, &mitccrh);
 		io->send_block(table, table_size);
 		return res;
 	}

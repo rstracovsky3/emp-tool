@@ -96,9 +96,9 @@ public:
 			return res;
 		}
 	}
-	block one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
+	block *one_hot_garbled_gate(std::size_t n, const block *A, size_t a) override {
 		// TODO
-		return public_zero;
+		return &public_zero;
 	}
 	block private_label(bool b) {
 		block res = zero_block;
