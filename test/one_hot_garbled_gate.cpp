@@ -14,7 +14,7 @@ using namespace emp;
 
 int main(void) {
 
-	std::size_t max_n = 5;
+	std::size_t max_n = 6;
 
 	// sender
 	block data[max_n], delta, table[2*(max_n - 1) + 1], w0, w1;
@@ -33,19 +33,23 @@ int main(void) {
 
 
 	cout << "Correctness ... ";
-	for(int n = 0; n < max_n; ++n) {
+	for(int n = 3; n < max_n; ++n) {
 		for(int a = 0; a < (1 << n); ++a) {
 			for(int i = 0; i < 1; ++i) {
 				prg.random_block(data, n);
 
-				//printf("n: %x, a: %x, i: %x\n", n, a, i);
-				// printt(data[1]);
+				printf("%x %x %x\n", n, a, i);
 				
 				w0p = one_hot_garble(n, data, a, delta, table, &mi_gen);
+				printf("GRBL: ");
+    			printtf(w0p, (1 << n));
+				printf("TABL: ");
+    			printtf(table, 2*(n-1)+1);
+				data[a] = data[a] ^ delta;
 				w1p = one_hot_eval(n, data, a, table, &mi_gen);
-
-				//printf("W0P[0]: ");
-    			//printt(w0p[0]);
+				printf("EVAL: ");
+				printtf(w1p, (1 << n));
+				
 
 				if(cmpBlock(w0p, w1p, (1 << n)) == false) {cout << "wrong" << endl; abort();}
 				

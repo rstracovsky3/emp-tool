@@ -8,19 +8,25 @@ namespace emp {
 
 // return list of ciphertexts size 2^n
 inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const block *table, MITCCRH<8> *mitccrh) {
+
+    assert(getLSB(delta) == 1);
+
 	bool pa;
 
-    std::vector<block> seed_buffer(1 << n);
+    block *seed_buffer = new block[1 << n]();
 
     PRG prg;
 
     auto missing = 0;
 
     // base case
-    pa = getLSB(A[0]);
-    seed_buffer[1 - pa] = A[0]; // should we be hashing here?
+    pa = getLSB(A[n - 1]);
+    seed_buffer[!pa] = A[n - 1]; // should we be hashing here?
 
-    missing += pa;
+    printf("Eval 0: ");
+    printtf(seed_buffer, (1 << n));
+
+    missing |= pa;
 
     block prg_buffer[2];
     block mitccrh_buffer[1];
@@ -33,14 +39,14 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
     block leaf_a;
 
     // seed population
-    for (std::size_t i = 1; i < n; i++) {
-        pa = getLSB(A[i]);
+    for (std::size_t i = 1; i < n; ++i) {
+        pa = getLSB(A[n - i - 1]);
 
         even = table[2*(i - 1)];
         odd = table[2*(i - 1) + 1];
 
         // seeds
-        for (int j = (1 << (i - 1)); j >= 0; j--) {
+        for (int j = (1 << i) - 1; j >= 0; --j) {
             if (j != missing) {
                 prg_buffer[0] = seed_buffer[j];
                 prg.reseed(&prg_buffer[0]);
@@ -49,22 +55,41 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
                 seed_buffer[2*j + 1] = prg_buffer[1];
                 even_rec ^= seed_buffer[j*2];
                 odd_rec ^= seed_buffer[j*2 + 1];
+                printf("%x %x %x \n", i, 2*j, 2*j+1);
             }
         }
 
         missing = (missing << 1) | pa; 
 
         // encryption key
-        mitccrh_buffer[0] = A[i];
-        mitccrh->hash<2,1>(mitccrh_buffer);
-        key = mitccrh_buffer[0];
+        prg_buffer[0] = A[n - i - 1];
+        prg.reseed(&prg_buffer[0]);
+        prg.random_block(prg_buffer, 1);
+        key = prg_buffer[0];
 
-        if (pa == 0) {
+        // encryption key
+        // mitccrh_buffer[0] = A[n - i - 1];
+        // mitccrh->hash<1,1>(mitccrh_buffer);
+        // key = mitccrh_buffer[0];
+
+        printf("Ai ");
+        printt(A[n - i - 1]);
+        printf("key ");
+        printt(key);
+
+        printf("missing, %x\n", missing);
+
+        if (pa == 1) {
+            printf("even\n");
             seed_buffer[missing ^ 1] = key ^ even ^ even_rec;
         }
         else {
+            printf("odd\n");
             seed_buffer[missing ^ 1] = key ^ odd ^ odd_rec;
         }
+
+        printf("Eval %x: ", i);
+        printtf(seed_buffer, (1 << n));
 
         if (i == n - 1) {
             leaf_a = table[2*(n - 1)];
@@ -74,12 +99,11 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
             for (std::size_t j = a + 1; j < (1 << n); j++) {
                 leaf_a ^= seed_buffer[i];
             }
-            seed_buffer[a] = leaf_a;
+            seed_buffer[(1 << n) - a - 1] = leaf_a;
         }
     }
 
-    block* seeds = &seed_buffer[0];
-    return seeds;
+    return seed_buffer;
 
 }
 

@@ -101,6 +101,27 @@ inline bool cmpBlock(const block * x, const block * y, int nblocks) {
 	return true;
 }
 
+inline void printt(block a) {
+	//uint64_t i0 = _mm_extract_epi64(a, 0);
+	//uint64_t i1 = _mm_extract_epi64(a, 1);
+	//printf("%X %X\n", i0, i1);
+	unsigned char *c = (unsigned char*)(&a);
+	for(int i = 0; i < 16; ++i) printf("%x ", c[i]);
+	printf("\n");
+}
+
+inline void printtf(block *a, std::size_t n) {
+	//uint64_t i0 = _mm_extract_epi64(a, 0);
+	//uint64_t i1 = _mm_extract_epi64(a, 1);
+	//printf("%X %X\n", i0, i1);
+  for (int j = 0; j < n; ++j) {
+    unsigned char *c = (unsigned char*)(&a[j]);
+	  for(int i = 0; i < 16; ++i) printf("%02X ", c[i]);
+    if (j != n - 1) printf("| ");
+  }
+	printf("\n\n");
+}
+
 //Modified from
 //https://mischasan.wordpress.com/2011/10/03/the-full-sse2-bit-matrix-transpose-routine/
 // with inner most loops changed to _mm_set_epi8 and _mm_set_epi16

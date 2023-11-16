@@ -14,24 +14,30 @@ namespace emp {
 
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
 inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block delta, block *table, MITCCRH<8> *mitccrh) {
+
+    assert(getLSB(delta) == 1);
+
     bool pa;
-    std::vector<block> seed_buffer(1 << n);
+    block *seed_buffer = new block[1 << n]();
 
     PRG prg;
 
     // base case
-    pa = getLSB(A[0]);
+    pa = getLSB(A[n - 1]);
     if (pa == 0) {
-        seed_buffer[0] = A[0] ^ delta; // should we be hashing here?
-        seed_buffer[1] = A[0];  // should we be hashing here?
+        seed_buffer[0] = A[n - 1] ^ delta; // should we be hashing here?
+        seed_buffer[1] = A[n - 1];  // should we be hashing here?
     }
     else {
-        seed_buffer[0] = A[0];  // should we be hashing here?
-        seed_buffer[1] = A[0] ^ delta;  // should we be hashing here?
+        seed_buffer[0] = A[n - 1];  // should we be hashing here?
+        seed_buffer[1] = A[n - 1] ^ delta;  // should we be hashing here?
     }
 
+    printf("BUFF 0: ");
+    printtf(seed_buffer, (1 << n));
+
     block prg_buffer[2];
-    block mitccrh_buffer[2];
+    block mitccrh_buffer[1];
 
     block even = makeBlock(0, 0); // I don't like this change sometime?
     block odd = makeBlock(0, 0); // I don't like this change sometime?
@@ -40,11 +46,11 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     block leaf;
 
     // seed population
-    for (std::size_t i = 1; i < n; i++) {
-        pa = getLSB(A[i]);
+    for (std::size_t i = 1; i < n; ++i) {
+        pa = getLSB(A[n - i - 1]);
 
         // seeds
-        for (int j = (1 << (i - 1)); j >= 0; j--) {
+        for (int j = (1 << i) - 1; j >= 0; --j) {
             prg_buffer[0] = seed_buffer[j];
             prg.reseed(&prg_buffer[0]);
             prg.random_block(prg_buffer, 2);
@@ -54,18 +60,39 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
             odd ^= seed_buffer[j*2 + 1];
         }
 
+        printf("BUFF %x: ", i);
+        printtf(seed_buffer, (1 << n));
+
         // encryption keys
         if (pa == 0) {
-            mitccrh_buffer[0] = A[i] ^ delta;
-            mitccrh_buffer[1] = A[i];
+            prg_buffer[0] = A[n - i - 1] ^ delta;
+            prg.reseed(&prg_buffer[0]);
+            prg.random_block(prg_buffer, 1);
+            even_key = prg_buffer[0];
+            prg_buffer[0] = A[n - i - 1];
+            prg.reseed(&prg_buffer[0]);
+            prg.random_block(prg_buffer, 1);
+            odd_key = prg_buffer[0];
         }
         else {
-            mitccrh_buffer[0] = A[i];
-            mitccrh_buffer[1] = A[i] ^ delta;
+            prg_buffer[0] = A[n - i - 1];
+            prg.reseed(&prg_buffer[0]);
+            prg.random_block(prg_buffer, 1);
+            even_key = prg_buffer[0];
+            prg_buffer[0] = A[n - i - 1] ^ delta;
+            prg.reseed(&prg_buffer[0]);
+            prg.random_block(prg_buffer, 1);
+            odd_key = prg_buffer[0];
         }
-        mitccrh->hash<2,1>(mitccrh_buffer);
-        even_key = mitccrh_buffer[0];
-        odd_key = mitccrh_buffer[1];
+
+        printf("Ai ");
+        printt(A[n - i - 1]);
+        printf("Ai^D ");
+        printt(A[n - i - 1] ^ delta);
+        printf("ekey ");
+        printt(even_key);
+        printf("okey ");
+        printt(odd_key);
 
         table[2*(i - 1)] = even ^ even_key;
         table[2*(i - 1) + 1] = odd ^ odd_key;
@@ -81,12 +108,10 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         table[2*(n - 1)] = leaf;
     }
 
-    seed_buffer[a] = seed_buffer[a] ^ delta;
+    seed_buffer[(1 << n) - a - 1] = seed_buffer[(1 << n) - a - 1] ^ delta;
+    //seed_buffer[a] = makeBlock(10, 10);
 
-    block* seeds = &seed_buffer[0];
-    //printf("SEED[0]: ");
-    //printt(seeds[0]);
-    return seeds;
+    return seed_buffer;
 
 }
 
