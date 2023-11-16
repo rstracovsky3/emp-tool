@@ -36,9 +36,9 @@ int main(void) {
 		for(int a = 0; a < (1 << n); ++a) {
 
 			for(int i = 0; i < 1; ++i) {
-				prg.random_block(data, n);
+				printf("========== TEST n=%u, a=%u, rep=%u ==========\n\n", n, a, i);
 
-				printf("%x %x %x\n", n, a, i);
+				prg.random_block(data, n);
 				
 				w0p = one_hot_garble(n, data, a, delta, table, &mi_gen);
 				printf("GRBL: ");
