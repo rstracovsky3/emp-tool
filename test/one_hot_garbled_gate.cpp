@@ -31,10 +31,10 @@ int main(void) {
 	mi_eva.setS(delta);
 	block ret;
 
-
 	cout << "Correctness ... ";
 	for(int n = 3; n < max_n; ++n) {
 		for(int a = 0; a < (1 << n); ++a) {
+
 			for(int i = 0; i < 1; ++i) {
 				prg.random_block(data, n);
 
@@ -45,7 +45,14 @@ int main(void) {
     			printtf(w0p, (1 << n));
 				printf("TABL: ");
     			printtf(table, 2*(n-1)+1);
-				data[a] = data[a] ^ delta;
+
+
+				for (int j = 0; j < n; ++j) {
+					if ((a >> j) & 1 == 1) {
+						data[j] = data[j] ^ delta;
+					}
+				}
+
 				w1p = one_hot_eval(n, data, a, table, &mi_gen);
 				printf("EVAL: ");
 				printtf(w1p, (1 << n));

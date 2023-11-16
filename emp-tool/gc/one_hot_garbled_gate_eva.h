@@ -20,7 +20,8 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
     auto missing = 0;
 
     // base case
-    pa = getLSB(A[n - 1]);
+    // pa = getLSB(A[n - 1]);
+    pa = (a & 1);
     seed_buffer[!pa] = A[n - 1]; // should we be hashing here?
 
     printf("Eval 0: ");
@@ -33,14 +34,18 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
 
     block even;
     block odd;
-    block even_rec = makeBlock(0, 0); // I don't like
-    block odd_rec = makeBlock(0, 0); // I don't like this change sometime?
+    block even_rec; // I don't like
+    block odd_rec; // I don't like this change sometime?
     block key;
     block leaf_a;
 
     // seed population
     for (std::size_t i = 1; i < n; ++i) {
-        pa = getLSB(A[n - i - 1]);
+        // pa = getLSB(A[n - i - 1]);
+        pa = (a >> i) & 1;
+
+        even_rec = makeBlock(0, 0);
+        odd_rec = makeBlock(0, 0);
 
         even = table[2*(i - 1)];
         odd = table[2*(i - 1) + 1];
@@ -79,7 +84,7 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
 
         printf("missing, %x\n", missing);
 
-        if (pa == 1) {
+        if ((a >> i) & 1 == 1) {
             printf("even\n");
             seed_buffer[missing ^ 1] = key ^ even ^ even_rec;
         }
@@ -93,13 +98,12 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
 
         if (i == n - 1) {
             leaf_a = table[2*(n - 1)];
-            for (std::size_t j = 0; j < a; j++) {
-                leaf_a ^= seed_buffer[i];
+            for (std::size_t j = 0; j < (1 << n); j++) {
+                if (j != a) {
+                    leaf_a ^= seed_buffer[j];
+                }
             }
-            for (std::size_t j = a + 1; j < (1 << n); j++) {
-                leaf_a ^= seed_buffer[i];
-            }
-            seed_buffer[(1 << n) - a - 1] = leaf_a;
+            seed_buffer[a] = leaf_a;
         }
     }
 

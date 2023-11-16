@@ -23,15 +23,18 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     PRG prg;
 
     // base case
-    pa = getLSB(A[n - 1]);
-    if (pa == 0) {
-        seed_buffer[0] = A[n - 1] ^ delta; // should we be hashing here?
-        seed_buffer[1] = A[n - 1];  // should we be hashing here?
-    }
-    else {
-        seed_buffer[0] = A[n - 1];  // should we be hashing here?
-        seed_buffer[1] = A[n - 1] ^ delta;  // should we be hashing here?
-    }
+    // pa = getLSB(A[n - 1]);
+    // if (pa == 0) {
+    //     seed_buffer[0] = A[n - 1] ^ delta; // should we be hashing here?
+    //     seed_buffer[1] = A[n - 1];  // should we be hashing here?
+    // }
+    // else {
+    //     seed_buffer[0] = A[n - 1];  // should we be hashing here?
+    //     seed_buffer[1] = A[n - 1] ^ delta;  // should we be hashing here?
+   // }
+
+    seed_buffer[0] = A[n - 1] ^ delta;
+    seed_buffer[1] = A[n - 1];
 
     printf("BUFF 0: ");
     printtf(seed_buffer, (1 << n));
@@ -39,14 +42,17 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     block prg_buffer[2];
     block mitccrh_buffer[1];
 
-    block even = makeBlock(0, 0); // I don't like this change sometime?
-    block odd = makeBlock(0, 0); // I don't like this change sometime?
+    block even; // I don't like this change sometime?
+    block odd; // I don't like this change sometime?
     block even_key;
     block odd_key;
     block leaf;
 
     // seed population
     for (std::size_t i = 1; i < n; ++i) {
+        even = makeBlock(0, 0);
+        odd = makeBlock(0, 0);
+
         pa = getLSB(A[n - i - 1]);
 
         // seeds
@@ -64,26 +70,36 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         printtf(seed_buffer, (1 << n));
 
         // encryption keys
-        if (pa == 0) {
-            prg_buffer[0] = A[n - i - 1] ^ delta;
-            prg.reseed(&prg_buffer[0]);
-            prg.random_block(prg_buffer, 1);
-            even_key = prg_buffer[0];
-            prg_buffer[0] = A[n - i - 1];
-            prg.reseed(&prg_buffer[0]);
-            prg.random_block(prg_buffer, 1);
-            odd_key = prg_buffer[0];
-        }
-        else {
-            prg_buffer[0] = A[n - i - 1];
-            prg.reseed(&prg_buffer[0]);
-            prg.random_block(prg_buffer, 1);
-            even_key = prg_buffer[0];
-            prg_buffer[0] = A[n - i - 1] ^ delta;
-            prg.reseed(&prg_buffer[0]);
-            prg.random_block(prg_buffer, 1);
-            odd_key = prg_buffer[0];
-        }
+        // if (pa == 0) {
+        //     prg_buffer[0] = A[n - i - 1] ^ delta;
+        //     prg.reseed(&prg_buffer[0]);
+        //     prg.random_block(prg_buffer, 1);
+        //     even_key = prg_buffer[0];
+        //     prg_buffer[0] = A[n - i - 1];
+        //     prg.reseed(&prg_buffer[0]);
+        //     prg.random_block(prg_buffer, 1);
+        //     odd_key = prg_buffer[0];
+        // }
+        // else {
+        //     prg_buffer[0] = A[n - i - 1];
+        //     prg.reseed(&prg_buffer[0]);
+        //     prg.random_block(prg_buffer, 1);
+        //     even_key = prg_buffer[0];
+        //     prg_buffer[0] = A[n - i - 1] ^ delta;
+        //     prg.reseed(&prg_buffer[0]);
+        //     prg.random_block(prg_buffer, 1);
+        //     odd_key = prg_buffer[0];
+        // }
+
+        prg_buffer[0] = A[n - i - 1] ^ delta;
+        prg.reseed(&prg_buffer[0]);
+        prg.random_block(prg_buffer, 1);
+        even_key = prg_buffer[0];
+        
+        prg_buffer[0] = A[n - i - 1];
+        prg.reseed(&prg_buffer[0]);
+        prg.random_block(prg_buffer, 1);
+        odd_key = prg_buffer[0];
 
         printf("Ai ");
         printt(A[n - i - 1]);
@@ -99,8 +115,8 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
 
         if (i == n - 1) {
             leaf = seed_buffer[0];
-            for (std::size_t j = 1; j < (1 << n); j++) {
-                leaf ^= seed_buffer[i];
+            for (std::size_t j = 1; j < (1 << n); ++j) {
+                leaf ^= seed_buffer[j];
             }
             leaf ^= delta;
         }
@@ -108,7 +124,7 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         table[2*(n - 1)] = leaf;
     }
 
-    seed_buffer[(1 << n) - a - 1] = seed_buffer[(1 << n) - a - 1] ^ delta;
+    seed_buffer[a] = seed_buffer[a] ^ delta;
     //seed_buffer[a] = makeBlock(10, 10);
 
     return seed_buffer;
