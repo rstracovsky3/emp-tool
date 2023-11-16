@@ -36,8 +36,8 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     seed_buffer[0] = A[n - 1] ^ delta;
     seed_buffer[1] = A[n - 1];
 
-    printf("BUFF 0: ");
-    printtf(seed_buffer, (1 << n));
+    // printf("BUFF 0: ");
+    // printtf(seed_buffer, (1 << n));
 
     block prg_buffer[2];
     block mitccrh_buffer[1];
@@ -66,8 +66,8 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
             odd ^= seed_buffer[j*2 + 1];
         }
 
-        printf("BUFF %x: ", i);
-        printtf(seed_buffer, (1 << n));
+        // printf("BUFF %x: ", i);
+        // printtf(seed_buffer, (1 << n));
 
         // encryption keys
         // if (pa == 0) {
@@ -101,14 +101,14 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         prg.random_block(prg_buffer, 1);
         odd_key = prg_buffer[0];
 
-        printf("Ai ");
-        printt(A[n - i - 1]);
-        printf("Ai^D ");
-        printt(A[n - i - 1] ^ delta);
-        printf("ekey ");
-        printt(even_key);
-        printf("okey ");
-        printt(odd_key);
+        // printf("Ai ");
+        // printt(A[n - i - 1]);
+        // printf("Ai^D ");
+        // printt(A[n - i - 1] ^ delta);
+        // printf("ekey ");
+        // printt(even_key);
+        // printf("okey ");
+        // printt(odd_key);
 
         table[2*(i - 1)] = even ^ even_key;
         table[2*(i - 1) + 1] = odd ^ odd_key;

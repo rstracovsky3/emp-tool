@@ -14,7 +14,7 @@ using namespace emp;
 
 int main(void) {
 
-	std::size_t max_n = 6;
+	std::size_t max_n = 9;
 
 	// sender
 	block data[max_n], delta, table[2*(max_n - 1) + 1], w0, w1;
@@ -35,16 +35,16 @@ int main(void) {
 	for(int n = 3; n < max_n; ++n) {
 		for(int a = 0; a < (1 << n); ++a) {
 
-			for(int i = 0; i < 1; ++i) {
-				printf("========== TEST n=%u, a=%u, rep=%u ==========\n\n", n, a, i);
+			for(int i = 0; i < 8; ++i) {
+				// printf("========== TEST n=%u, a=%u, rep=%u ==========\n\n", n, a, i);
 
 				prg.random_block(data, n);
 				
 				w0p = one_hot_garble(n, data, a, delta, table, &mi_gen);
-				printf("GRBL: ");
-    			printtf(w0p, (1 << n));
-				printf("TABL: ");
-    			printtf(table, 2*(n-1)+1);
+				// printf("GRBL: ");
+    			// printtf(w0p, (1 << n));
+				// printf("TABL: ");
+    			// printtf(table, 2*(n-1)+1);
 
 
 				for (int j = 0; j < n; ++j) {
@@ -54,11 +54,14 @@ int main(void) {
 				}
 
 				w1p = one_hot_eval(n, data, a, table, &mi_gen);
-				printf("EVAL: ");
-				printtf(w1p, (1 << n));
+				// printf("EVAL: ");
+				// printtf(w1p, (1 << n));
 				
 
 				if(cmpBlock(w0p, w1p, (1 << n)) == false) {cout << "wrong" << endl; abort();}
+
+				delete[] w0p;
+				delete[] w1p;
 				
 
 				// w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen); // OUTPUTS LABEL for 0
@@ -76,18 +79,24 @@ int main(void) {
 	}
 	cout << "check\n";
 
-	cout << "Efficiency: ";
-	auto start = clock_start();
-	for(int i = 0; i < 1024*1024*2; ++i) {
-		prg.random_block(data, 2);
-		w0 = halfgates_garble(data[0], data[0]^delta, data[1], data[1]^delta, delta, table, &mi_gen);
-		w1 = w0 ^ delta;
-
-		data1[0] = data[0] ^ delta;
-		data1[1] = data[1] ^ delta;
-		ret = halfgates_eval(data1[0], data1[1], table, &mi_eva);
+	for(int n = 3; n < max_n; ++n) {
+		cout << "Efficiency (n=" << n << "): ";
+		auto start = clock_start();
+		int a = 0;
+		for(int i = 0; i < 1024*1024*2; ++i) {
+			prg.random_block(data, n);
+			w0p = one_hot_garble(n, data, a, delta, table, &mi_gen);
+			for (int j = 0; j < n; ++j) {
+			if ((a >> j) & 1 == 1) {
+				data[j] = data[j] ^ delta;
+				}
+			}
+			w1p = one_hot_eval(n, data, a, table, &mi_gen);
+			delete[] w0p;
+			delete[] w1p;
+		}
+		cout << 1024*1024*128/(time_from(start))*1e6 << " gates/second" << endl;
 	}
-	cout << 1024*1024*128/(time_from(start))*1e6 << " gates/second" << endl;
 
 	return 0;
 }

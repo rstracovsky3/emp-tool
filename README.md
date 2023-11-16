@@ -77,7 +77,13 @@ c.commit(decom, com, data, 1024*1024); // commit, will fill values decom and com
 assert(c.open(decom, com, data, 1024*1024)); // open, return if the decommitment is valid or not
 ```
 
-## On-the-fly Circuit Compiler
+## Advanced Garbling Techniques
+
+To compile and run the tests for the one-hot-garbling primitive code in ```gc``` run the following:
+```
+make test_one_hot_garbled_gate
+./run ./bin/test_one_hot_garbled_gate
+```
 
 
 ## [Acknowledgement, Reference, and Questions](https://github.com/emp-toolkit/emp-readme/blob/master/README.md#citation)

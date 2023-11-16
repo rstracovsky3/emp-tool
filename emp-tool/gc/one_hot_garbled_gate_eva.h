@@ -24,8 +24,8 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
     pa = (a >> (n - 1)) & 1;
     seed_buffer[!pa] = A[n - 1]; // should we be hashing here?
 
-    printf("Eval 0: ");
-    printtf(seed_buffer, (1 << n));
+    // printf("Eval 0: ");
+    // printtf(seed_buffer, (1 << n));
 
     missing |= pa;
 
@@ -60,7 +60,7 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
                 seed_buffer[2*j + 1] = prg_buffer[1];
                 even_rec ^= seed_buffer[j*2];
                 odd_rec ^= seed_buffer[j*2 + 1];
-                printf("%x %x %x \n", i, 2*j, 2*j+1);
+                // printf("%x %x %x \n", i, 2*j, 2*j+1);
             }
         }
 
@@ -77,24 +77,24 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
         // mitccrh->hash<1,1>(mitccrh_buffer);
         // key = mitccrh_buffer[0];
 
-        printf("Ai ");
-        printt(A[n - i - 1]);
-        printf("key ");
-        printt(key);
+        // printf("Ai ");
+        // printt(A[n - i - 1]);
+        // printf("key ");
+        // printt(key);
 
-        printf("missing, %x\n", missing);
+        // printf("missing, %x\n", missing);
 
         if (pa == 1) {
-            printf("even\n");
+            // printf("even\n");
             seed_buffer[missing ^ 1] = key ^ even ^ even_rec;
         }
         else {
-            printf("odd\n");
+            // printf("odd\n");
             seed_buffer[missing ^ 1] = key ^ odd ^ odd_rec;
         }
 
-        printf("Eval %x: ", i);
-        printtf(seed_buffer, (1 << n));
+        // printf("Eval %x: ", i);
+        // printtf(seed_buffer, (1 << n));
 
         if (i == n - 1) {
             leaf_a = table[2*(n - 1)];
