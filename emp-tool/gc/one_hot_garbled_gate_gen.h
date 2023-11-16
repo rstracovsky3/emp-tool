@@ -12,38 +12,23 @@ namespace emp {
  * https://eprint.iacr.org/2022/798.pdf
  */
 
+// TODO: DETAILED COMMENTS
 // table will be of length 2n - 1 that are the ciphertexts G sends to E
 inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block delta, block *table, MITCCRH<8> *mitccrh) {
 
     assert(getLSB(delta) == 1);
 
-    bool pa;
     block *seed_buffer = new block[1 << n]();
 
     PRG prg;
 
-    // base case
-    // pa = getLSB(A[n - 1]);
-    // if (pa == 0) {
-    //     seed_buffer[0] = A[n - 1] ^ delta; // should we be hashing here?
-    //     seed_buffer[1] = A[n - 1];  // should we be hashing here?
-    // }
-    // else {
-    //     seed_buffer[0] = A[n - 1];  // should we be hashing here?
-    //     seed_buffer[1] = A[n - 1] ^ delta;  // should we be hashing here?
-   // }
-
     seed_buffer[0] = A[n - 1] ^ delta;
     seed_buffer[1] = A[n - 1];
 
-    // printf("BUFF 0: ");
-    // printtf(seed_buffer, (1 << n));
-
     block prg_buffer[2];
-    block mitccrh_buffer[1];
 
-    block even; // I don't like this change sometime?
-    block odd; // I don't like this change sometime?
+    block even;
+    block odd;
     block even_key;
     block odd_key;
     block leaf;
@@ -53,45 +38,18 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         even = makeBlock(0, 0);
         odd = makeBlock(0, 0);
 
-        pa = getLSB(A[n - i - 1]);
-
         // seeds
         for (int j = (1 << i) - 1; j >= 0; --j) {
             prg_buffer[0] = seed_buffer[j];
             prg.reseed(&prg_buffer[0]);
-            prg.random_block(prg_buffer, 2);
+            prg.random_block(prg_buffer, 2); // TODO: ADD NONCING?
             seed_buffer[2*j] = prg_buffer[0];
             seed_buffer[2*j + 1] = prg_buffer[1];
             even ^= seed_buffer[j*2];
             odd ^= seed_buffer[j*2 + 1];
         }
 
-        // printf("BUFF %x: ", i);
-        // printtf(seed_buffer, (1 << n));
-
-        // encryption keys
-        // if (pa == 0) {
-        //     prg_buffer[0] = A[n - i - 1] ^ delta;
-        //     prg.reseed(&prg_buffer[0]);
-        //     prg.random_block(prg_buffer, 1);
-        //     even_key = prg_buffer[0];
-        //     prg_buffer[0] = A[n - i - 1];
-        //     prg.reseed(&prg_buffer[0]);
-        //     prg.random_block(prg_buffer, 1);
-        //     odd_key = prg_buffer[0];
-        // }
-        // else {
-        //     prg_buffer[0] = A[n - i - 1];
-        //     prg.reseed(&prg_buffer[0]);
-        //     prg.random_block(prg_buffer, 1);
-        //     even_key = prg_buffer[0];
-        //     prg_buffer[0] = A[n - i - 1] ^ delta;
-        //     prg.reseed(&prg_buffer[0]);
-        //     prg.random_block(prg_buffer, 1);
-        //     odd_key = prg_buffer[0];
-        // }
-
-        prg_buffer[0] = A[n - i - 1] ^ delta;
+        prg_buffer[0] = A[n - i - 1] ^ delta; // TODO: CHANGE TO HASH FROM PRG?
         prg.reseed(&prg_buffer[0]);
         prg.random_block(prg_buffer, 1);
         even_key = prg_buffer[0];
@@ -100,15 +58,6 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
         prg.reseed(&prg_buffer[0]);
         prg.random_block(prg_buffer, 1);
         odd_key = prg_buffer[0];
-
-        // printf("Ai ");
-        // printt(A[n - i - 1]);
-        // printf("Ai^D ");
-        // printt(A[n - i - 1] ^ delta);
-        // printf("ekey ");
-        // printt(even_key);
-        // printf("okey ");
-        // printt(odd_key);
 
         table[2*(i - 1)] = even ^ even_key;
         table[2*(i - 1) + 1] = odd ^ odd_key;
@@ -125,7 +74,6 @@ inline block *one_hot_garble(std::size_t n, const block *A, std::size_t a, block
     }
 
     seed_buffer[a] = seed_buffer[a] ^ delta;
-    //seed_buffer[a] = makeBlock(10, 10);
 
     return seed_buffer;
 

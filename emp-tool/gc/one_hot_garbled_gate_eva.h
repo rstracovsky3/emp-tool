@@ -19,29 +19,22 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
 
     auto missing = 0;
 
-    // base case
-    // pa = getLSB(A[n - 1]);
     pa = (a >> (n - 1)) & 1;
-    seed_buffer[!pa] = A[n - 1]; // should we be hashing here?
-
-    // printf("Eval 0: ");
-    // printtf(seed_buffer, (1 << n));
+    seed_buffer[!pa] = A[n - 1];
 
     missing |= pa;
 
     block prg_buffer[2];
-    block mitccrh_buffer[1];
 
     block even;
     block odd;
-    block even_rec; // I don't like
-    block odd_rec; // I don't like this change sometime?
+    block even_rec;
+    block odd_rec;
     block key;
     block leaf_a;
 
     // seed population
     for (std::size_t i = 1; i < n; ++i) {
-        // pa = getLSB(A[n - i - 1]);
         pa = (a >> (n - i - 1)) & 1;
 
         even_rec = makeBlock(0, 0);
@@ -60,7 +53,6 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
                 seed_buffer[2*j + 1] = prg_buffer[1];
                 even_rec ^= seed_buffer[j*2];
                 odd_rec ^= seed_buffer[j*2 + 1];
-                // printf("%x %x %x \n", i, 2*j, 2*j+1);
             }
         }
 
@@ -72,29 +64,12 @@ inline block *one_hot_eval(std::size_t n, const block *A, std::size_t a, const b
         prg.random_block(prg_buffer, 1);
         key = prg_buffer[0];
 
-        // encryption key
-        // mitccrh_buffer[0] = A[n - i - 1];
-        // mitccrh->hash<1,1>(mitccrh_buffer);
-        // key = mitccrh_buffer[0];
-
-        // printf("Ai ");
-        // printt(A[n - i - 1]);
-        // printf("key ");
-        // printt(key);
-
-        // printf("missing, %x\n", missing);
-
         if (pa == 1) {
-            // printf("even\n");
             seed_buffer[missing ^ 1] = key ^ even ^ even_rec;
         }
         else {
-            // printf("odd\n");
             seed_buffer[missing ^ 1] = key ^ odd ^ odd_rec;
         }
-
-        // printf("Eval %x: ", i);
-        // printtf(seed_buffer, (1 << n));
 
         if (i == n - 1) {
             leaf_a = table[2*(n - 1)];
